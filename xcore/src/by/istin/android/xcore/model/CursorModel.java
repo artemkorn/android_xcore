@@ -20,6 +20,8 @@ import java.util.ListIterator;
 import by.istin.android.xcore.utils.CursorUtils;
 
 /**
+ * Cursor wrapper, allows manipulating it as a Cursor and as a List simultaneously. 
+ *  
  * Created by Uladzimir_Klyshevich on 8/30/13.
  */
 public class CursorModel implements Cursor, List<Cursor> {
@@ -27,7 +29,7 @@ public class CursorModel implements Cursor, List<Cursor> {
     public static interface CursorModelCreator {
         CursorModel create(Cursor cursor);
 
-        public static CursorModelCreator DEFAULT = new CursorModelCreator() {
+        public static final CursorModelCreator DEFAULT = new CursorModelCreator() {
             @Override
             public CursorModel create(Cursor cursor) {
                 return new CursorModel(cursor);
@@ -42,6 +44,8 @@ public class CursorModel implements Cursor, List<Cursor> {
         this.mCursor.moveToFirst();
     }
 
+    // Cursor-inherited methods
+    
     @Override
     public int getCount() {
         return mCursor.getCount();
@@ -179,11 +183,13 @@ public class CursorModel implements Cursor, List<Cursor> {
     }
 
     @Override
+    @Deprecated
     public void deactivate() {
         mCursor.deactivate();
     }
 
     @Override
+    @Deprecated
     public boolean requery() {
         return mCursor.requery();
     }
@@ -238,6 +244,8 @@ public class CursorModel implements Cursor, List<Cursor> {
         return mCursor.respond(bundle);
     }
 
+    // Own methods
+    
     public Long getLong(String key) {
         return CursorUtils.getLong(key, mCursor);
     }
@@ -269,6 +277,8 @@ public class CursorModel implements Cursor, List<Cursor> {
     public String getString(String key) {
         return CursorUtils.getString(key, mCursor);
     }
+    
+    // List-inherited methods
 
     @Override
     public boolean add(Cursor object) {
@@ -344,7 +354,7 @@ public class CursorModel implements Cursor, List<Cursor> {
     @Override
     public ContentValues[] toArray() {
         List<ContentValues> list = new ArrayList<ContentValues>();
-        CursorUtils.convertToContentValues(mCursor, list, CursorUtils.Converter.get());
+        CursorUtils.convertToContentValues(mCursor, list, CursorUtils.CursorConverter.get());
         return list.toArray(new ContentValues[list.size()]);
     }
 

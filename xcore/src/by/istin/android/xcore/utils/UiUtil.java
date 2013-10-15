@@ -1,5 +1,6 @@
 package by.istin.android.xcore.utils;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Point;
@@ -37,12 +38,15 @@ public class UiUtil {
 		return sDisplayWidth;
 	}
 
+	// TODO Move to NetworkUtil & rename to isWiFi enabled + take the static context from the app class
     public static boolean isWiFi(Context context) {
         ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
         return  mWifi.isConnected();
     }
 
+	@SuppressWarnings("deprecation")
+	@SuppressLint("NewApi")
 	private static void initDisplayDimensions() {
 		Context ctx = ContextHolder.getInstance().getContext();
 		WindowManager wm = (WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE);

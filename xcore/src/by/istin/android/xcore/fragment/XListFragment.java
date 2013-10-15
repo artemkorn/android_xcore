@@ -1,5 +1,8 @@
 package by.istin.android.xcore.fragment;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
@@ -8,7 +11,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter;
@@ -32,13 +34,10 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import by.istin.android.xcore.XCoreHelper;
 import by.istin.android.xcore.error.IErrorHandler;
 import by.istin.android.xcore.fragment.CursorLoaderFragmentHelper.ICursorLoaderFragmentHelper;
+import by.istin.android.xcore.inherited.fragment.AdapterViewFragment;
 import by.istin.android.xcore.model.CursorModel;
 import by.istin.android.xcore.plugin.IXListFragmentPlugin;
 import by.istin.android.xcore.service.DataSourceService;
@@ -46,12 +45,17 @@ import by.istin.android.xcore.service.StatusResultReceiver;
 import by.istin.android.xcore.source.DataSourceRequest;
 import by.istin.android.xcore.source.impl.http.HttpAndroidDataSource;
 import by.istin.android.xcore.utils.AppUtils;
-import by.istin.android.xcore.utils.CursorUtils;
 import by.istin.android.xcore.utils.HashUtils;
 import by.istin.android.xcore.utils.Log;
 import by.istin.android.xcore.utils.StringUtil;
 
-public abstract class XListFragment extends AdapterViewFragment implements ICursorLoaderFragmentHelper, IDataSourceHelper, DataSourceExecuteHelper.IDataSourceListener {
+/**
+ * Main library entity. It serves as a versatile UI element,
+ * closely connected with another 
+ */
+public abstract class XListFragment extends AdapterViewFragment 
+    implements ICursorLoaderFragmentHelper, IDataSourceHelper, 
+    DataSourceExecuteHelper.IDataSourceListener {
 
 	private class EndlessScrollListener implements OnScrollListener {
 
@@ -80,7 +84,9 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
                 return;
             }
             //Log.d("fragment_status", "paging " + firstVisibleItem + " " + visibleItemCount + " " + totalItemCount + " " + count);
-            if (previousTotal != totalItemCount && !pagingLoading && (totalItemCount - visibleItemCount) <= (firstVisibleItem + visibleThreshold)) {
+            if (previousTotal != totalItemCount && 
+                    !pagingLoading && (totalItemCount - visibleItemCount) 
+                    <= (firstVisibleItem + visibleThreshold)) {
                 previousTotal = totalItemCount;
             	pagingLoading = true;
                 currentPage++;
@@ -101,8 +107,10 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
         }
         int count = adapter.getCount();
         if (adapter instanceof HeaderViewListAdapter) {
-            HeaderViewListAdapter headerViewListAdapter = (HeaderViewListAdapter) adapter;
-            count = count - headerViewListAdapter.getFootersCount() - headerViewListAdapter.getHeadersCount();
+            HeaderViewListAdapter headerViewListAdapter = 
+                    (HeaderViewListAdapter) adapter;
+            count = count - headerViewListAdapter.getFootersCount() - 
+                    headerViewListAdapter.getHeadersCount();
         }
         return count;
     }
@@ -111,11 +119,13 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
 
         private View searchClear;
 
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
+        public void onTextChanged(CharSequence s, 
+                int start, int before, int count) {
 
         }
 
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        public void beforeTextChanged(CharSequence s, 
+                int start, int count, int after) {
 
         }
 
@@ -169,7 +179,8 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
         onViewCreated(view);
 
         //plugins
-        List<IXListFragmentPlugin> listFragmentPlugins = XCoreHelper.get(view.getContext()).getListFragmentPlugins();
+        List<IXListFragmentPlugin> listFragmentPlugins = 
+                XCoreHelper.get(view.getContext()).getListFragmentPlugins();
         if (listFragmentPlugins != null) {
             for(IXListFragmentPlugin plugin : listFragmentPlugins) {
                 plugin.onCreateView(this, view, inflater, container, savedInstanceState);
@@ -179,17 +190,21 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
 		if (isPagingSupport()) {
 			mEndlessScrollListener = new EndlessScrollListener();
             setOnScrollListViewListener(mEndlessScrollListener);
-			((ListView)view.findViewById(android.R.id.list)).setOnScrollListener(new OnScrollListener() {
+			((ListView)view.findViewById(android.R.id.list)).setOnScrollListener(
+			        new OnScrollListener() {
                 @Override
                 public void onScrollStateChanged(AbsListView absListView, int i) {
-                    for (OnScrollListener onScrollListener : onScrollListenerList) {
+                    for (OnScrollListener onScrollListener :
+                        onScrollListenerList) {
                         onScrollListener.onScrollStateChanged(absListView, i);
                     }
                 }
 
                 @Override
-                public void onScroll(AbsListView absListView, int i, int i2, int i3) {
-                    for (OnScrollListener onScrollListener : onScrollListenerList) {
+                public void onScroll(
+                        AbsListView absListView, int i, int i2, int i3) {
+                    for (OnScrollListener onScrollListener : 
+                        onScrollListenerList) {
                         onScrollListener.onScroll(absListView, i, i2, i3);
                     }
                 }
@@ -199,7 +214,8 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
 		if (searchEditTextId == null) {
 			return view;
 		}
-		final EditText searchEditText = (EditText) view.findViewById(getSearchEditTextId());
+		final EditText searchEditText = 
+		        (EditText) view.findViewById(getSearchEditTextId());
 		Integer searchHintText = getSearchHintText();
 		if (searchHintText != null) {
 			searchEditText.setHint(searchHintText);
@@ -239,13 +255,15 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
 	}
 
 	@Override
-    public void onAdapterViewItemClick(AdapterView<?> l, View v, int position, long id) {
+    public void onAdapterViewItemClick(AdapterView<?> l, 
+            View v, int position, long id) {
 		super.onAdapterViewItemClick(l, v, position, id);
 		Cursor cursor = (Cursor) l.getAdapter().getItem(position);
 		onListItemClick(cursor, v, position, id);
 	}
 
-	public abstract void onListItemClick(Cursor cursor, View v, int position, long id);
+	public abstract void onListItemClick(Cursor cursor, 
+	        View v, int position, long id);
 
 	public abstract int getViewLayout();
 	
@@ -286,9 +304,11 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         isLoaderWork = true;
-        Loader<Cursor> cursorLoader = CursorLoaderFragmentHelper.onCreateLoader(this, id, args);
+        Loader<Cursor> cursorLoader = 
+                CursorLoaderFragmentHelper.onCreateLoader(this, id, args);
         //plugins
-        List<IXListFragmentPlugin> listFragmentPlugins = XCoreHelper.get(getActivity()).getListFragmentPlugins();
+        List<IXListFragmentPlugin> listFragmentPlugins = 
+                XCoreHelper.get(getActivity()).getListFragmentPlugins();
         if (listFragmentPlugins != null) {
             for(IXListFragmentPlugin plugin : listFragmentPlugins) {
                 plugin.onCreateLoader(this, cursorLoader, id, args);
@@ -315,7 +335,10 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
 				
 				@Override
 				public Cursor runQuery(CharSequence constraint) {
-					return getActivity().getContentResolver().query(getUri(), getProjection(), getSearchField() + " like ?", new String[]{"%"+StringUtil.translit(constraint.toString().trim())+"%"}, getOrder());
+					return getActivity().getContentResolver().query(getUri(), 
+					    getProjection(), getSearchField() + " like ?", 
+					    new String[]{"%"+StringUtil.translit(
+					            constraint.toString().trim())+"%"}, getOrder());
 				}
 				
 			});
@@ -325,7 +348,8 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
 			((CursorAdapter) adapter).swapCursor(cursor);
 		}
         //plugins
-        List<IXListFragmentPlugin> listFragmentPlugins = XCoreHelper.get(getActivity()).getListFragmentPlugins();
+        List<IXListFragmentPlugin> listFragmentPlugins = 
+            XCoreHelper.get(getActivity()).getListFragmentPlugins();
         if (listFragmentPlugins != null) {
             for(IXListFragmentPlugin plugin : listFragmentPlugins) {
                 plugin.onLoadFinished(this, loader, cursor);
@@ -339,7 +363,9 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
         int adapterLayout = getAdapterLayout();
         String[] adapterColumns = getAdapterColumns();
         int[] adapterControlIds = getAdapterControlIds();
-        SimpleCursorAdapter simpleCursorAdapter = new SimpleCursorAdapter(activity, adapterLayout, cursor, adapterColumns, adapterControlIds, 2) {
+        SimpleCursorAdapter simpleCursorAdapter = 
+            new SimpleCursorAdapter(activity, adapterLayout, cursor, 
+                    adapterColumns, adapterControlIds, 2) {
 
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
@@ -363,7 +389,8 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
 
         };
         //plugins
-        List<IXListFragmentPlugin> listFragmentPlugins = XCoreHelper.get(getActivity()).getListFragmentPlugins();
+        List<IXListFragmentPlugin> listFragmentPlugins = 
+            XCoreHelper.get(getActivity()).getListFragmentPlugins();
         if (listFragmentPlugins != null) {
             for(IXListFragmentPlugin plugin : listFragmentPlugins) {
                 plugin.createAdapter(this, simpleCursorAdapter, activity, cursor);
@@ -372,7 +399,8 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
         return simpleCursorAdapter;
 	}
 
-    protected View onAdapterGetView(SimpleCursorAdapter simpleCursorAdapter, int position, View view) {
+    protected View onAdapterGetView(
+           SimpleCursorAdapter simpleCursorAdapter, int position, View view) {
         return view;
     }
 
@@ -393,7 +421,8 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
         if (activity == null) {
             return true;
         }
-        List<IXListFragmentPlugin> listFragmentPlugins = XCoreHelper.get(activity).getListFragmentPlugins();
+        List<IXListFragmentPlugin> listFragmentPlugins = 
+                XCoreHelper.get(activity).getListFragmentPlugins();
         if (listFragmentPlugins != null) {
             for(IXListFragmentPlugin plugin : listFragmentPlugins) {
                 if (plugin.setAdapterViewImage(this, v, value)) {
@@ -421,15 +450,19 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
         if (activity == null) {
             return;
         }
-        IErrorHandler errorHandler = (IErrorHandler) AppUtils.get(activity, IErrorHandler.SYSTEM_SERVICE_KEY);
+        IErrorHandler errorHandler = 
+            (IErrorHandler) AppUtils.get(activity, IErrorHandler.SYSTEM_SERVICE_KEY);
         if (errorHandler != null) {
-            errorHandler.onError(activity, XListFragment.this, dataSourceRequest, exception);
+            errorHandler.onError(activity, XListFragment.this, 
+                    dataSourceRequest, exception);
         } else {
-            Toast.makeText(activity, exception.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity, exception.getMessage(), 
+                    Toast.LENGTH_SHORT).show();
         }
         checkStatus("onError");
         //plugins
-        List<IXListFragmentPlugin> listFragmentPlugins = XCoreHelper.get(activity).getListFragmentPlugins();
+        List<IXListFragmentPlugin> listFragmentPlugins = 
+                XCoreHelper.get(activity).getListFragmentPlugins();
         if (listFragmentPlugins != null) {
             for (IXListFragmentPlugin plugin : listFragmentPlugins) {
                 plugin.onStatusResultReceiverError(XListFragment.this, exception);
@@ -448,13 +481,15 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		if (CursorLoaderFragmentHelper.onActivityCreated(this, savedInstanceState)) {
+		if (CursorLoaderFragmentHelper.onActivityCreated(
+		        this, savedInstanceState)) {
             isLoaderWork = true;
         }
 		String url = getUrl();
         loadData(getActivity(), url, isForceUpdateData(), null);
         //plugins
-        List<IXListFragmentPlugin> listFragmentPlugins = XCoreHelper.get(getActivity()).getListFragmentPlugins();
+        List<IXListFragmentPlugin> listFragmentPlugins = 
+                XCoreHelper.get(getActivity()).getListFragmentPlugins();
         if (listFragmentPlugins != null) {
             for(IXListFragmentPlugin plugin : listFragmentPlugins) {
                 plugin.onActivityCreated(this, savedInstanceState);
@@ -474,19 +509,23 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
         loadData(activity, getUrl(), true, null);
     }
 
-    public void loadData(Activity activity, String url, String parentRequestUri) {
+    public void loadData(Activity activity, 
+            String url, String parentRequestUri) {
         loadData(activity, url, isForceUpdateData(), parentRequestUri);
     }
 
-	public void loadData(Activity activity, String url, Boolean isForceUpdate, String parentRequestUri) {
+	public void loadData(Activity activity, 
+	        String url, Boolean isForceUpdate, String parentRequestUri) {
         if (StringUtil.isEmpty(url)) {
             return;
         }
-        final DataSourceRequest dataSourceRequest = createDataSourceRequest(url, isForceUpdate, parentRequestUri);
+        final DataSourceRequest dataSourceRequest = 
+                createDataSourceRequest(url, isForceUpdate, parentRequestUri);
 		dataSourceExecute(activity, dataSourceRequest);
 	}
 
-    public DataSourceRequest createDataSourceRequest(String url, Boolean isForceUpdate, String parentRequestUri) {
+    public DataSourceRequest createDataSourceRequest(
+            String url, Boolean isForceUpdate, String parentRequestUri) {
         final DataSourceRequest dataSourceRequest = new DataSourceRequest(url);
         dataSourceRequest.setCacheable(isCacheable());
         dataSourceRequest.setCacheExpiration(getCacheExpiration());
@@ -498,8 +537,11 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
     @Override
     public void dataSourceExecute(final Context context, final DataSourceRequest dataSourceRequest) {
         isServiceWork = true;
-        Log.d("fragment_status", getClass().getSimpleName() + " dataSourceExecute: " + dataSourceRequest.getUri());
-        DataSourceService.execute(context, dataSourceRequest, getProcessorKey(), getDataSourceKey(), new StatusResultReceiver(new Handler(Looper.getMainLooper())) {
+        Log.d("fragment_status", getClass().getSimpleName() 
+                + " dataSourceExecute: " + dataSourceRequest.getUri());
+        DataSourceService.execute(context, dataSourceRequest, 
+                getProcessorKey(), getDataSourceKey(), 
+                new StatusResultReceiver(new Handler(Looper.getMainLooper())) {
 
             @Override
             public void onAddToQueue(Bundle resultData) {
@@ -507,10 +549,12 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
                 //plugins
                 FragmentActivity activity = getActivity();
                 if (activity == null) return;
-                List<IXListFragmentPlugin> listFragmentPlugins = XCoreHelper.get(activity).getListFragmentPlugins();
+                List<IXListFragmentPlugin> listFragmentPlugins = 
+                        XCoreHelper.get(activity).getListFragmentPlugins();
                 if (listFragmentPlugins != null) {
                     for (IXListFragmentPlugin plugin : listFragmentPlugins) {
-                        plugin.onStatusResultReceiverStart(XListFragment.this, resultData);
+                        plugin.onStatusResultReceiverStart(
+                                XListFragment.this, resultData);
                     }
                 }
                 checkStatus("onAddToQueue");
@@ -536,10 +580,12 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
                     return;
                 }
                 //plugins
-                List<IXListFragmentPlugin> listFragmentPlugins = XCoreHelper.get(fragmentActivity).getListFragmentPlugins();
+                List<IXListFragmentPlugin> listFragmentPlugins = 
+                        XCoreHelper.get(fragmentActivity).getListFragmentPlugins();
                 if (listFragmentPlugins != null) {
                     for (IXListFragmentPlugin plugin : listFragmentPlugins) {
-                        plugin.onStatusResultReceiverDone(XListFragment.this, resultData);
+                        plugin.onStatusResultReceiverDone(
+                               XListFragment.this, resultData);
                     }
                 }
                 onReceiverOnDone(resultData);
@@ -555,10 +601,12 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
                     return;
                 }
                 //plugins
-                List<IXListFragmentPlugin> listFragmentPlugins = XCoreHelper.get(context).getListFragmentPlugins();
+                List<IXListFragmentPlugin> listFragmentPlugins = 
+                        XCoreHelper.get(context).getListFragmentPlugins();
                 if (listFragmentPlugins != null) {
                     for (IXListFragmentPlugin plugin : listFragmentPlugins) {
-                        plugin.onStatusResultReceiverCached(XListFragment.this, resultData);
+                        plugin.onStatusResultReceiverCached(
+                                XListFragment.this, resultData);
                     }
                 }
                 onReceiverOnCached(resultData);
@@ -584,7 +632,8 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
 	public void onLoaderReset(Loader<Cursor> loader) {
         //isLoaderWork = false;
 		if (getView() != null) {
-            Log.d("empty_view", loader.isAbandoned() + " " + loader.isReset() + " " + loader.isStarted());
+            Log.d("empty_view", loader.isAbandoned() + " " + loader.isReset() 
+                    + " " + loader.isStarted());
             Adapter adapter = getListView().getAdapter();
             if (adapter instanceof HeaderViewListAdapter) {
                 adapter = ((HeaderViewListAdapter) adapter).getWrappedAdapter();
@@ -684,7 +733,8 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
     }
 
     protected void checkStatus(String reason) {
-        Log.d("fragment_status", getClass().getSimpleName() + " reason:" + reason);
+        Log.d("fragment_status", getClass().getSimpleName() 
+                + " reason:" + reason);
         FragmentActivity activity = getActivity();
         if (activity == null) {
             return;
@@ -696,7 +746,8 @@ public abstract class XListFragment extends AdapterViewFragment implements ICurs
         ListAdapter listAdapter = getListAdapter();
         int size = getRealAdapterCount(listAdapter);
         boolean isPaging = mEndlessScrollListener != null;
-        Log.d("fragment_status", getClass().getSimpleName() + " " + isLoaderWork + " " + isServiceWork + " " + size);
+        Log.d("fragment_status", getClass().getSimpleName() + " " 
+                + isLoaderWork + " " + isServiceWork + " " + size);
         if (isLoaderWork) {
             if (size == 0) {
                 showProgress();

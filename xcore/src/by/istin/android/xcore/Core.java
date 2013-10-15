@@ -87,37 +87,37 @@ public class Core implements XCoreHelper.IAppServiceKey {
 
         private Core.SimpleDataSourceServiceListener mDataSourceServiceListener;
 
-        public ExecuteOperationBuilder setDataSourceRequest(DataSourceRequest pDataSourceRequest) {
+        public ExecuteOperationBuilder<Result> setDataSourceRequest(DataSourceRequest pDataSourceRequest) {
             this.mDataSourceRequest = pDataSourceRequest;
             return this;
         }
 
-        public ExecuteOperationBuilder setProcessorKey(String pProcessorKey) {
+        public ExecuteOperationBuilder<Result> setProcessorKey(String pProcessorKey) {
             this.mProcessorKey = pProcessorKey;
             return this;
         }
 
-        public ExecuteOperationBuilder setDataSourceKey(String pDataSourceKey) {
+        public ExecuteOperationBuilder<Result> setDataSourceKey(String pDataSourceKey) {
             this.mDataSourceKey = pDataSourceKey;
             return this;
         }
 
-        public ExecuteOperationBuilder setResultQueryUri(Uri pResultQueryUri) {
+        public ExecuteOperationBuilder<Result> setResultQueryUri(Uri pResultQueryUri) {
             this.mResultQueryUri = pResultQueryUri;
             return this;
         }
 
-        public ExecuteOperationBuilder setActivity(Activity pActivity) {
+        public ExecuteOperationBuilder<Result> setActivity(Activity pActivity) {
             this.mActivity = pActivity;
             return this;
         }
 
-        public ExecuteOperationBuilder setSuccess(ISuccess<Result> pSuccess) {
+        public ExecuteOperationBuilder<Result> setSuccess(ISuccess<Result> pSuccess) {
             this.mSuccess = pSuccess;
             return this;
         }
 
-        public ExecuteOperationBuilder setSelectionArgs(String[] selectionArgs) {
+        public ExecuteOperationBuilder<Result> setSelectionArgs(String[] selectionArgs) {
             this.mSelectionArgs = selectionArgs;
             return this;
         }
@@ -172,23 +172,23 @@ public class Core implements XCoreHelper.IAppServiceKey {
             };
         }
 
-        public ExecuteOperationBuilder setResultSqlQuery(String resultSqlQuery) {
+        public ExecuteOperationBuilder<Result> setResultSqlQuery(String resultSqlQuery) {
             setResultQueryUri(ModelContract.getSQLQueryUri(resultSqlQuery, null));
             return this;
         }
 
-        public ExecuteOperationBuilder setResultSqlQuery(String resultSqlQuery, String[] args) {
+        public ExecuteOperationBuilder<Result> setResultSqlQuery(String resultSqlQuery, String[] args) {
             setResultSqlQuery(resultSqlQuery);
             setSelectionArgs(args);
             return this;
         }
 
-        public ExecuteOperationBuilder setCursorModelCreator(CursorModel.CursorModelCreator cursorModelCreator) {
+        public ExecuteOperationBuilder<Result> setCursorModelCreator(CursorModel.CursorModelCreator cursorModelCreator) {
             this.mCursorModelCreator = cursorModelCreator;
             return this;
         }
 
-        public ExecuteOperationBuilder setDataSourceServiceListener(SimpleDataSourceServiceListener dataSourceServiceListener) {
+        public ExecuteOperationBuilder<Result> setDataSourceServiceListener(SimpleDataSourceServiceListener dataSourceServiceListener) {
             this.mDataSourceServiceListener = dataSourceServiceListener;
             return this;
         }

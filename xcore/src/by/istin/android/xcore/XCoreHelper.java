@@ -19,6 +19,10 @@ public class XCoreHelper {
         return (XCoreHelper) AppUtils.get(context, SYSTEM_SERVICE_KEY);
     }
 
+    /**
+     * Some general component, which should have only one instance in the application
+     * and may be assembled dynamically, using this key string.
+     */
 	public static interface IAppServiceKey {
 		
 		String getAppServiceKey();

@@ -63,12 +63,13 @@ public class ReflectUtils {
 		} catch (IllegalArgumentException e) {
 			throw e;
 		} catch (IllegalAccessException e) {
-			//ignored
+			// ignored
 			return null;
 		}
 	}
 	
-	public static <T> T getInstanceInterface(Class<?> clazz, Class<T> interfaceTargetClazz) {
+	@SuppressWarnings("unchecked")
+    public static <T> T getInstanceInterface(Class<?> clazz, Class<T> interfaceTargetClazz) {
 		try {
             Class<?> cls = clazz;
             while (cls != null) {

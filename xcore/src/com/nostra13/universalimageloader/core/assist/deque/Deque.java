@@ -4,7 +4,7 @@
  * at http://creativecommons.org/licenses/publicdomain
  */
 
-package by.istin.android.xcore.service.assist;
+package com.nostra13.universalimageloader.core.assist.deque;
 
 import java.util.Collection;
 import java.util.Iterator;

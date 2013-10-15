@@ -3,17 +3,6 @@
  */
 package by.istin.android.xcore.db;
 
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.DatabaseUtils;
-import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteQueryBuilder;
-import android.os.Build;
-import android.provider.BaseColumns;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -24,16 +13,27 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import by.istin.android.xcore.annotations.dbBoolean;
-import by.istin.android.xcore.annotations.dbByte;
-import by.istin.android.xcore.annotations.dbByteArray;
-import by.istin.android.xcore.annotations.dbDouble;
-import by.istin.android.xcore.annotations.dbEntities;
-import by.istin.android.xcore.annotations.dbEntity;
-import by.istin.android.xcore.annotations.dbIndex;
-import by.istin.android.xcore.annotations.dbInteger;
-import by.istin.android.xcore.annotations.dbLong;
-import by.istin.android.xcore.annotations.dbString;
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.DatabaseUtils;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteQueryBuilder;
+import android.os.Build;
+import android.provider.BaseColumns;
+import by.istin.android.xcore.annotations.DbBoolean;
+import by.istin.android.xcore.annotations.DbByte;
+import by.istin.android.xcore.annotations.DbByteArray;
+import by.istin.android.xcore.annotations.DbDouble;
+import by.istin.android.xcore.annotations.DbEntities;
+import by.istin.android.xcore.annotations.DbEntity;
+import by.istin.android.xcore.annotations.DbIndex;
+import by.istin.android.xcore.annotations.DbInteger;
+import by.istin.android.xcore.annotations.DbLong;
+import by.istin.android.xcore.annotations.DbString;
 import by.istin.android.xcore.source.DataSourceRequest;
 import by.istin.android.xcore.utils.BytesUtils;
 import by.istin.android.xcore.utils.Log;
@@ -41,8 +41,9 @@ import by.istin.android.xcore.utils.ReflectUtils;
 import by.istin.android.xcore.utils.StringUtil;
 
 /**
+ * This class serves as an instant database access point
+ * 
  * @author Uladzimir_Klyshevich
- *
  */
 public class DBHelper extends SQLiteOpenHelper {
 
@@ -59,13 +60,13 @@ public class DBHelper extends SQLiteOpenHelper {
     final static Map<Class<?>, String> sTypeAssociation = new HashMap<Class<?>, String>();
 
     static {
-        sTypeAssociation.put(dbString.class, "LONGTEXT");
-        sTypeAssociation.put(dbInteger.class, "INTEGER");
-        sTypeAssociation.put(dbLong.class, "BIGINT");
-        sTypeAssociation.put(dbDouble.class, "DOUBLE");
-        sTypeAssociation.put(dbBoolean.class, "BOOLEAN");
-        sTypeAssociation.put(dbByte.class, "INTEGER");
-        sTypeAssociation.put(dbByteArray.class, "BLOB");
+        sTypeAssociation.put(DbString.class,    "LONGTEXT");
+        sTypeAssociation.put(DbInteger.class,   "INTEGER");
+        sTypeAssociation.put(DbLong.class,      "BIGINT");
+        sTypeAssociation.put(DbDouble.class,    "DOUBLE");
+        sTypeAssociation.put(DbBoolean.class,   "BOOLEAN");
+        sTypeAssociation.put(DbByte.class,      "INTEGER");
+        sTypeAssociation.put(DbByteArray.class, "BLOB");
     }
 
     public static final String FOREIGN_KEY_TEMPLATE = "ALTER TABLE %1$s ADD CONSTRAINT fk_%1$s_%2$s " +
@@ -75,11 +76,12 @@ public class DBHelper extends SQLiteOpenHelper {
     private Map<Class<?>, List<Field>> mDbEntityFieldsCache = new HashMap<Class<?>, List<Field>>();
 
     private Map<Class<?>, List<Field>> mDbEntitiesFieldsCache = new HashMap<Class<?>, List<Field>>();
-
-    private volatile Boolean isLockTransaction = false;
+    
+    private final TransactionHandler mTransaction = new TransactionHandler();
 
     public DBHelper(Context context) {
-		super(context, StringUtil.format(DATABASE_NAME_TEMPLATE, context.getPackageName()), null, DATABASE_VERSION);
+		super(context, StringUtil.format(DATABASE_NAME_TEMPLATE, 
+		        context.getPackageName()), null, DATABASE_VERSION);
 	}
 	
 	@Override
@@ -89,17 +91,22 @@ public class DBHelper extends SQLiteOpenHelper {
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+	    // TODO Clean the exising tables?
 	}
 
-	public static String getTableName(Class<?> clazz) {
+	/**
+	 * @param clazz Entity class to be stored int he DB.
+	 * @return prepared class name to be compatible with the SQLite names
+	 */
+	private static String getTableName(Class<?> clazz) {
 		return clazz.getCanonicalName().replace(".", "_");
 	}
 
+    @SuppressWarnings("deprecation")
     @Override
     public SQLiteDatabase getWritableDatabase() {
         SQLiteDatabase writableDatabase = super.getWritableDatabase();
-        if (Build.VERSION.SDK_INT > 7 && Build.VERSION.SDK_INT < 16) {
+        if (Build.VERSION.SDK_INT < 16) {
             if (writableDatabase != null) {
                 writableDatabase.setLockingEnabled(false);
             }
@@ -107,21 +114,27 @@ public class DBHelper extends SQLiteOpenHelper {
         return writableDatabase;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public SQLiteDatabase getReadableDatabase() {
         SQLiteDatabase readableDatabase = super.getReadableDatabase();
-        if (Build.VERSION.SDK_INT > 7 && Build.VERSION.SDK_INT < 16) {
+        if (Build.VERSION.SDK_INT < 16) {
             readableDatabase.setLockingEnabled(false);
         }
         return readableDatabase;
     }
 
-	public synchronized void createTablesForModels(Class<?>... models) {
+    /**
+     * Creates SQLite tables for model classes set
+     * @param models
+     */
+    @SuppressLint("NewApi")
+    public synchronized void createTablesForModels(Class<?>... models) {
 		SQLiteDatabase dbWriter = getWritableDatabase();
-        if (Build.VERSION.SDK_INT > 10) {
+        if (Build.VERSION.SDK_INT >= 11) {
             dbWriter.enableWriteAheadLogging();
         }
-        beginTransaction(dbWriter);
+        mTransaction.beginTransaction(dbWriter);
         StringBuilder builder = new StringBuilder();
         List<String> foreignKeys = new ArrayList<String>();
         for (Class<?> classOfModel : models) {
@@ -141,7 +154,7 @@ public class DBHelper extends SQLiteOpenHelper {
 						Class<? extends Annotation> classOfAnnotation = annotation.annotationType();
 						if (sTypeAssociation.containsKey(classOfAnnotation)) {
 							type = sTypeAssociation.get(classOfAnnotation);
-						} else if (classOfAnnotation.equals(dbEntity.class)) {
+						} else if (classOfAnnotation.equals(DbEntity.class)) {
 							List<Field> list = mDbEntityFieldsCache.get(classOfModel);
 							if (list == null) {
 								list = new ArrayList<Field>();
@@ -150,7 +163,7 @@ public class DBHelper extends SQLiteOpenHelper {
 							mDbEntityFieldsCache.put(classOfModel, list);
                             addForeignKey(foreignKeys, classOfModel, annotation);
                             isForeign = true;
-						} else if (classOfAnnotation.equals(dbEntities.class)) {
+						} else if (classOfAnnotation.equals(DbEntities.class)) {
 							List<Field> list = mDbEntitiesFieldsCache.get(classOfModel);
 							if (list == null) {
 								list = new ArrayList<Field>();
@@ -159,7 +172,7 @@ public class DBHelper extends SQLiteOpenHelper {
                             addForeignKey(foreignKeys, classOfModel, annotation);
                             mDbEntitiesFieldsCache.put(classOfModel, list);
                             isForeign = true;
-						} else if (classOfAnnotation.equals(dbIndex.class)) {
+						} else if (classOfAnnotation.equals(DbIndex.class)) {
                             builder.append("CREATE INDEX "
                                     + "fk_" + table + "_" + name
                                     + " ON "
@@ -201,36 +214,23 @@ public class DBHelper extends SQLiteOpenHelper {
                 Log.e(TAG, e);
             }
         }
-        setTransactionSuccessful(dbWriter);
-        endTransaction(dbWriter);
-    }
-
-    private void addForeignKey(List<String> foreignKeys, Class<?> classOfModel, Annotation annotation) {
-        Class<?> childClazz;
-        if (annotation instanceof dbEntities) {
-            childClazz = ((dbEntities) annotation).clazz();
-        } else {
-            childClazz = ((dbEntity) annotation).clazz();
-        }
-        String tableName = DBHelper.getTableName(childClazz);
-        String foreignKey = StringUtil.format(FOREIGN_KEY_TEMPLATE, tableName, DBHelper.getTableName(classOfModel), classOfModel.getSimpleName().toLowerCase());
-        foreignKeys.add(foreignKey);
-    }
-
-    private void endTransaction(SQLiteDatabase dbWriter) {
+        dbWriter.setTransactionSuccessful();
         dbWriter.endTransaction();
     }
 
-    private void setTransactionSuccessful(SQLiteDatabase dbWriter) {
-        dbWriter.setTransactionSuccessful();
-    }
-
-    private void beginTransaction(SQLiteDatabase dbWriter) {
-        if (Build.VERSION.SDK_INT > 10) {
-            dbWriter.beginTransactionNonExclusive();
+    @SuppressLint("DefaultLocale")
+    private void addForeignKey(List<String> foreignKeys, Class<?> classOfModel, Annotation annotation) {
+        Class<?> childClazz;
+        if (annotation instanceof DbEntities) {
+            childClazz = ((DbEntities) annotation).clazz();
         } else {
-            dbWriter.beginTransaction();
+            childClazz = ((DbEntity) annotation).clazz();
         }
+        String tableName = DBHelper.getTableName(childClazz);
+        String foreignKey = StringUtil.format(FOREIGN_KEY_TEMPLATE, tableName, 
+                DBHelper.getTableName(classOfModel), 
+                classOfModel.getSimpleName().toLowerCase());
+        foreignKeys.add(foreignKey);
     }
 
     public int delete(Class<?> clazz, String where, String[] whereArgs) {
@@ -278,17 +278,17 @@ public class DBHelper extends SQLiteOpenHelper {
         }
 		SQLiteDatabase db = getWritableDatabase();
 		try {
-            if (!isLockTransaction) {
-                beginTransaction(db);
+            if (mTransaction.isTransactionFree()) {
+                mTransaction.beginTransaction(db);
             }
             int count = updateOrInsert(dataSourceRequest, classOfModel, db, contentValues);
-            if (!isLockTransaction) {
-                setTransactionSuccessful(db);
+            if (mTransaction.isTransactionFree()) {
+                db.setTransactionSuccessful();
             }
 			return count;
 		} finally {
-            if (!isLockTransaction) {
-                endTransaction(db);
+            if (mTransaction.isTransactionFree()) {
+                db.endTransaction();
             }
 		}
 	}
@@ -321,8 +321,8 @@ public class DBHelper extends SQLiteOpenHelper {
 		if (db == null) {
 			db = getWritableDatabase();
 			requestWithoutTransaction = true;
-            if (!isLockTransaction) {
-                beginTransaction(db);
+            if (mTransaction.isTransactionFree()) {
+                mTransaction.beginTransaction(db);
             }
 			ICleaner cleaner = ReflectUtils.getInstanceInterface(classOfModel, ICleaner.class);
 			if (cleaner != null) {
@@ -340,11 +340,11 @@ public class DBHelper extends SQLiteOpenHelper {
 			}
 			List<Field> listDbEntity = mDbEntityFieldsCache.get(classOfModel);
 			if (listDbEntity != null) {
-				storeSubEntity(dataSourceRequest, id, classOfModel, db, contentValues, dbEntity.class, listDbEntity);
+				storeSubEntity(dataSourceRequest, id, classOfModel, db, contentValues, DbEntity.class, listDbEntity);
 			}
 			List<Field> listDbEntities = mDbEntitiesFieldsCache.get(classOfModel);
 			if (listDbEntities != null) {
-				storeSubEntity(dataSourceRequest, id, classOfModel, db, contentValues, dbEntities.class, listDbEntities);
+				storeSubEntity(dataSourceRequest, id, classOfModel, db, contentValues, DbEntities.class, listDbEntities);
 			}
 			String tableName = getTableName(classOfModel);
 			IMerge merge = ReflectUtils.getInstanceInterface(classOfModel, IMerge.class);
@@ -385,15 +385,15 @@ public class DBHelper extends SQLiteOpenHelper {
 				}
 			}
 			if (requestWithoutTransaction) {
-                if (!isLockTransaction) {
-                    setTransactionSuccessful(db);
+                if (mTransaction.isTransactionFree()) {
+                    db.setTransactionSuccessful();
                 }
 			}
 			return rowId;
 		} finally {
 			if (requestWithoutTransaction) {
-                if (!isLockTransaction) {
-                    endTransaction(db);
+                if (mTransaction.isTransactionFree()) {
+                    db.endTransaction();
                 }
 			}
 		}
@@ -417,7 +417,8 @@ public class DBHelper extends SQLiteOpenHelper {
 		return true;
 	}
 
-	private void storeSubEntity(DataSourceRequest dataSourceRequest, long id, Class<?> foreignEntity, SQLiteDatabase db, ContentValues contentValues, Class<? extends Annotation> dbAnnotation, List<Field> listDbEntity) {
+	@SuppressLint("DefaultLocale")
+    private void storeSubEntity(DataSourceRequest dataSourceRequest, long id, Class<?> foreignEntity, SQLiteDatabase db, ContentValues contentValues, Class<? extends Annotation> dbAnnotation, List<Field> listDbEntity) {
 		for (Field field : listDbEntity) {
 			String columnName = ReflectUtils.getStaticStringValue(field);
 			byte[] entityAsByteArray = contentValues.getAsByteArray(columnName);
@@ -439,7 +440,7 @@ public class DBHelper extends SQLiteOpenHelper {
 			} catch (ClassNotFoundException e1) {
 				throw new IllegalArgumentException(e1);
 			}
-			if (annotation.annotationType().equals(dbEntity.class)) {
+			if (annotation.annotationType().equals(DbEntity.class)) {
 				ContentValues entityValues = BytesUtils.contentValuesFromByteArray(entityAsByteArray);
 				putForeignIdAndClear(id, contentValuesKey, foreignId, entityValues);
                 updateOrInsert(dataSourceRequest, db, modelClass, entityValues);
@@ -512,27 +513,79 @@ public class DBHelper extends SQLiteOpenHelper {
         }
     }
 
+    // TRANSACTION MANAGEMENT
+    
+    // TODO Remove these external methods further
+    // Use transaction locking internally only
     public void lockTransaction() {
-        synchronized (isLockTransaction) {
-            isLockTransaction = true;
-            SQLiteDatabase writableDatabase = getWritableDatabase();
-            beginTransaction(writableDatabase);
-        }
+        mTransaction.lockTransaction();
     }
-
+    
     public void unlockTransaction() {
-        synchronized (isLockTransaction) {
-            SQLiteDatabase writableDatabase = getWritableDatabase();
-            setTransactionSuccessful(writableDatabase);
-            endTransaction(writableDatabase);
-            isLockTransaction = false;
-        }
+        mTransaction.unlockTransaction();
     }
+    
+    public void unlockTransactionAndRollback() {
+        mTransaction.errorUnlockTransaction();
+    }
+    
+    /**
+     * This class should help managing the DB transactions internally.
+     */
+    private class TransactionHandler {
 
-    public void errorUnlockTransaction() {
-        synchronized (isLockTransaction) {
-            endTransaction(getWritableDatabase());
-            isLockTransaction =  false;
+        private volatile Boolean isLockTransaction = false;
+        
+        /**
+         * @return <code>true</code> when a transaction is pending at the moment
+         */
+        public boolean isTransactionLocked() {
+            return isLockTransaction;
+        }
+        
+        /**
+         * @return <code>true</code> when there is no pending transaction
+         * at the moment
+         */
+        public boolean isTransactionFree() {
+            return !isLockTransaction;
+        }
+
+        public void lockTransaction() {
+            synchronized (isLockTransaction) {
+                isLockTransaction = true;
+                SQLiteDatabase writableDatabase = getWritableDatabase();
+                beginTransaction(writableDatabase);
+            }
+        }
+    
+        public void unlockTransaction() {
+            synchronized (isLockTransaction) {
+                SQLiteDatabase writableDatabase = getWritableDatabase();
+                writableDatabase.setTransactionSuccessful();
+                writableDatabase.endTransaction();
+                isLockTransaction = false;
+            }
+        }
+    
+        /**
+         * Completes transaction as unsuccessful to make its changes be rolled back.
+         */
+        public void errorUnlockTransaction() {
+            synchronized (isLockTransaction) {
+                getWritableDatabase().endTransaction();
+                isLockTransaction =  false;
+            }
+        }
+        
+
+        @SuppressLint("NewApi")
+        public void beginTransaction(SQLiteDatabase dbWriter) {
+            if (Build.VERSION.SDK_INT >= 11) {
+                dbWriter.beginTransactionNonExclusive();
+            } else {
+                dbWriter.beginTransaction();
+            }
         }
     }
 }

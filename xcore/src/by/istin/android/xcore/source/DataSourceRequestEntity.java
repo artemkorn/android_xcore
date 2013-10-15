@@ -2,30 +2,28 @@ package by.istin.android.xcore.source;
 
 import android.content.ContentValues;
 import android.provider.BaseColumns;
-
-import by.istin.android.xcore.annotations.dbInteger;
-import by.istin.android.xcore.annotations.dbLong;
-import by.istin.android.xcore.annotations.dbString;
+import by.istin.android.xcore.annotations.DbLong;
+import by.istin.android.xcore.annotations.DbString;
 import by.istin.android.xcore.utils.HashUtils;
 
 public class DataSourceRequestEntity implements BaseColumns {
 
-	@dbLong
+	@DbLong
 	public static final String ID = _ID;
 	
-	@dbLong
+	@DbLong
 	public static final String LAST_UPDATE = "last_update";
 	
-	@dbLong
+	@DbLong
 	public static final String EXPIRATION = "expiration";
 	
-	@dbString
+	@DbString
 	public static final String URI = "uri";
 
-	@dbString
+	@DbString
 	public static final String URI_PARAM = "uri_param";
 
-	@dbString
+	@DbString
 	public static final String PARENT_URI = "parent_uri";
 
 	public static ContentValues prepare(DataSourceRequest dataSourceRequest) {

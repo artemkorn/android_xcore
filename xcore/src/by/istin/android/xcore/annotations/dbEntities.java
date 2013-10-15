@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 @Target(value = ElementType.FIELD)
 @Retention(value = RetentionPolicy.RUNTIME)
-public @interface dbEntities {
+public @interface DbEntities {
 
 	Class<?> clazz();
 	

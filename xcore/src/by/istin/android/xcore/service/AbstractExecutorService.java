@@ -3,6 +3,11 @@
  */
 package by.istin.android.xcore.service;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+
+import com.nostra13.universalimageloader.core.assist.deque.LIFOLinkedBlockingDeque;
+
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -10,15 +15,9 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Parcelable;
 import android.os.ResultReceiver;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.concurrent.LinkedBlockingQueue;
-
 import by.istin.android.xcore.ContextHolder;
 import by.istin.android.xcore.processor.IProcessor;
 import by.istin.android.xcore.service.RequestExecutor.ExecuteRunnable;
-import by.istin.android.xcore.service.assist.LIFOLinkedBlockingDeque;
 import by.istin.android.xcore.source.DataSourceRequest;
 import by.istin.android.xcore.source.IDataSource;
 import by.istin.android.xcore.utils.AppUtils;

@@ -58,6 +58,7 @@ public abstract class SyncService extends Service {
         return sSyncAdapter.getSyncAdapterBinder();
     }
     
+    // TODO Should this class be public?
     public AbstractThreadedSyncAdapter getSyncAdapter(Context context, boolean autoInitialize) {
         return new AbstractThreadedSyncAdapter(context, autoInitialize){
 

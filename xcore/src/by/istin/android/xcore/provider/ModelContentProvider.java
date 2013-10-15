@@ -22,21 +22,24 @@ import by.istin.android.xcore.source.SyncDataSourceRequestEntity;
 import by.istin.android.xcore.utils.Log;
 import by.istin.android.xcore.utils.StringUtil;
 
+/**
+ * Base ContentProvider to be used as a local data storage in the RESTful client.
+ * Basically, one need to override {@link getDbEntities} method to provide a list 
+ * of persistable model classes.
+ */
 public abstract class ModelContentProvider extends ContentProvider {
 
     public static final String OLD_APP_VERSION = "oldAppVersion";
-    private static UriMatcher sUriMatcher;
 
 	private static final int MODELS = 1;
-
 	private static final int MODELS_ID = 2;
-	
-	private static final int MODELS_ID_NEGOTIVE = 3;
+	private static final int MODELS_ID_NEGATIVE = 3;
 
+	private static UriMatcher sUriMatcher;
 	private static DBHelper sDbHelper;
 
+	// TODO There is separate lock in the DBHelper, so maybe leave only one?
     private volatile Boolean isLock = false;
-
     private static volatile Object mLock = new Object();
 
     @Override
@@ -93,10 +96,12 @@ public abstract class ModelContentProvider extends ContentProvider {
             sUriMatcher.addURI(authority, "*", MODELS);
             sUriMatcher.addURI(authority, "*/#", MODELS_ID);
             //for negotive number
-            sUriMatcher.addURI(authority, "*/*", MODELS_ID_NEGOTIVE);
+            sUriMatcher.addURI(authority, "*/*", MODELS_ID_NEGATIVE);
         }
     }
 
+    // TODO We have no  check for repeats in this array! Should there be some responsibility in
+    // the ContentProvider or DBHelper classes?
     public abstract Class<?>[] getDbEntities();
 
     @Override
@@ -142,7 +147,7 @@ public abstract class ModelContentProvider extends ContentProvider {
         return queryWithoutLock(uri, projection, selection, selectionArgs, sortOrder);
     }
 
-    //TODO refactoring query parameters to path segments
+    //TODO refactor query parameters to path segments
     private Cursor queryWithoutLock(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         String className = null;
         List<String> pathSegments = null;
@@ -159,7 +164,7 @@ public abstract class ModelContentProvider extends ContentProvider {
                     selection = selection + ModelColumns._ID + " = " + uri.getLastPathSegment();
                 }
                 break;
-            case MODELS_ID_NEGOTIVE:
+            case MODELS_ID_NEGATIVE:
                 pathSegments = uri.getPathSegments();
                 className = pathSegments.get(pathSegments.size()-2);
                 if (StringUtil.isEmpty(selection)) {
@@ -236,7 +241,7 @@ public abstract class ModelContentProvider extends ContentProvider {
             }
             where = where + ModelColumns._ID + " = " + uri.getLastPathSegment();
             break;
-        case MODELS_ID_NEGOTIVE:
+        case MODELS_ID_NEGATIVE:
             className = pathSegments.get(pathSegments.size()-2);
             if (where == null) {
                 where = StringUtil.EMPTY;
@@ -316,10 +321,10 @@ public abstract class ModelContentProvider extends ContentProvider {
                         getContext().getContentResolver().notifyChange(Uri.parse(uri.toString().split("\\?")[0]), null);
                     }
                 } catch (OperationApplicationException e1) {
-                    sDbHelper.errorUnlockTransaction();
+                    sDbHelper.unlockTransactionAndRollback();
                     throw e1;
                 } catch (Exception e) {
-                    sDbHelper.errorUnlockTransaction();
+                    sDbHelper.unlockTransactionAndRollback();
                     throw new IllegalArgumentException(e);
                 }
                 return result;
@@ -331,9 +336,10 @@ public abstract class ModelContentProvider extends ContentProvider {
         }
     }
 
-
-    public ContentProviderResult apply(ContentProviderOperation contentProviderOperation, ContentProviderResult[] backRefs,
-                                       int numBackRefs) throws OperationApplicationException {
+    public ContentProviderResult apply(
+            ContentProviderOperation contentProviderOperation, 
+            ContentProviderResult[] backRefs, int numBackRefs)
+                throws OperationApplicationException {
         ContentValues values = contentProviderOperation.resolveValueBackReferences(backRefs, numBackRefs);
         String[] selectionArgs = contentProviderOperation.resolveSelectionArgsBackReferences(backRefs, numBackRefs);
         Uri mUri = contentProviderOperation.getUri();

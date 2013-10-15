@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package by.istin.android.xcore.fragment;
+package by.istin.android.xcore.inherited.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -25,6 +25,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -34,11 +35,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 /**
- * Static library support version of the framework's {@link android.app.ListFragment}.
- * Used to write apps that run on platforms prior to Android 3.0.  When running
- * on Android 3.0 or above, this implementation is still used; it does not try
- * to switch to the framework's implementation.  See the framework SDK
- * documentation for a class overview.
+ * Do just the same as a ListFragment, but for a generic AdapterView, instead of ListView
  */
 public class AdapterViewFragment extends Fragment {
     static final int INTERNAL_EMPTY_ID = 0x00ff0001;
@@ -60,13 +57,13 @@ public class AdapterViewFragment extends Fragment {
         }
     };
 
-    ListAdapter mAdapter;
-    AdapterView mAdapterView;
-    View mEmptyView;
-    TextView mStandardEmptyView;
-    View mProgressContainer;
-    View mAdapterViewContainer;
-    CharSequence mEmptyText;
+    private ListAdapter mAdapter;
+    private AdapterView<Adapter> mAdapterView;
+    private View mEmptyView;
+    private TextView mStandardEmptyView;
+    private View mProgressContainer;
+    private View mAdapterViewContainer;
+    private CharSequence mEmptyText;
     boolean mListShown;
 
     public AdapterViewFragment() {
@@ -120,7 +117,7 @@ public class AdapterViewFragment extends Fragment {
         lframe.addView(tv, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-        AdapterView adapterView = createDefaultAbstractView();
+        AdapterView<?> adapterView = createDefaultAbstractView();
 
         adapterView.setId(android.R.id.list);
         if (adapterView instanceof ListView) {
@@ -140,7 +137,7 @@ public class AdapterViewFragment extends Fragment {
         return root;
     }
 
-    protected AdapterView createDefaultAbstractView() {
+    protected AdapterView<?> createDefaultAbstractView() {
         return new ListView(getActivity());
     }
 
@@ -187,7 +184,7 @@ public class AdapterViewFragment extends Fragment {
         boolean hadAdapter = mAdapter != null;
         mAdapter = adapter;
         if (mAdapterView != null) {
-            mAdapterView.setAdapter(adapter);
+            mAdapterView.setAdapter((Adapter)adapter);
             if (!mListShown && !hadAdapter) {
                 // The list was hidden, and previously didn't have an
                 // adapter.  It is now time to show it.
@@ -226,7 +223,7 @@ public class AdapterViewFragment extends Fragment {
     /**
      * Get the activity's list view widget.
      */
-    public AdapterView getListView() {
+    public AdapterView<? extends Adapter> getListView() {
         ensureList();
         return mAdapterView;
     }
@@ -327,6 +324,7 @@ public class AdapterViewFragment extends Fragment {
         return mAdapter;
     }
 
+    @SuppressWarnings("unchecked")
     private void ensureList() {
         if (mAdapterView != null) {
             return;
@@ -336,7 +334,7 @@ public class AdapterViewFragment extends Fragment {
             throw new IllegalStateException("Content view not yet created");
         }
         if (root instanceof AdapterView) {
-            mAdapterView = (AdapterView) root;
+            mAdapterView = (AdapterView<Adapter>) root;
         } else {
             mStandardEmptyView = (TextView)root.findViewById(INTERNAL_EMPTY_ID);
             if (mStandardEmptyView == null) {
@@ -357,7 +355,7 @@ public class AdapterViewFragment extends Fragment {
                         "Content has view with id attribute 'android.R.id.list' "
                         + "that is not a ListView class");
             }
-            mAdapterView = (AdapterView)rawListView;
+            mAdapterView = (AdapterView<Adapter>) rawListView;
             if (mEmptyView != null) {
                 //TODO mAdapterView.setEmptyView(mEmptyView);
             } else if (mEmptyText != null) {

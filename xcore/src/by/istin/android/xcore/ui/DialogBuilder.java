@@ -1,5 +1,6 @@
 package by.istin.android.xcore.ui;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -30,7 +31,8 @@ public class DialogBuilder {
 	
 	private static final String TAG = DialogBuilder.class.getSimpleName();
 
-	private static int getTheme() {
+	@SuppressLint("InlinedApi")
+    private static int getTheme() {
 		if (Build.VERSION.SDK_INT < 11) {
 			return android.R.style.Theme_Dialog;
 		} else {
@@ -38,7 +40,8 @@ public class DialogBuilder {
 		}
 	}
 	
-	public static Builder createBuilder(final Context context) {
+    @SuppressLint("NewApi")
+    public static Builder createBuilder(final Context context) {
 		if (Build.VERSION.SDK_INT < 11) {
 			return new Builder(context);
 		} else {
@@ -96,7 +99,9 @@ public class DialogBuilder {
 		}
 		builder.setMessage(message);
 		builder.setPositiveButton(posBtn == null ? OK : posBtn, agreeListener);
-		builder.setNegativeButton(negBtn == null ? StringUtil.getStringResource(CANCEL, context) : negBtn, disagreeListener == null ? new OnClickListener() {
+		builder.setNegativeButton(negBtn == null ? 
+		    StringUtil.getStringResource(CANCEL, context) : negBtn, 
+		    disagreeListener == null ? new OnClickListener() {
 			
 			public void onClick(DialogInterface dialog, int which) {
 				try {
@@ -117,8 +122,9 @@ public class DialogBuilder {
 	}
 
     public static void applyBackground(AlertDialog alertDialog) {
-        if (Build.VERSION.SDK_INT > 10) {
-            alertDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        if (Build.VERSION.SDK_INT >= 11) {
+            alertDialog.getWindow().setBackgroundDrawableResource(
+                    android.R.color.transparent);
         }
     }
 
@@ -170,17 +176,19 @@ public class DialogBuilder {
 		
 	}
 	
-	public static void singleChooseOption(final Context context, int titleResource, int optionsResource, int defaultOption, final OnClickListener listener) {
+	public static void singleChooseOption(final Context context, int titleResource,
+	        int optionsResource, int defaultOption, final OnClickListener listener) {
         String[] stringArray = context.getResources().getStringArray(optionsResource);
         singleChooseOption(context, titleResource, stringArray, defaultOption, listener);
-
 	}
 
-    public static void singleChooseOption(Context context, int titleResource, String[] stringArray, int defaultOption, OnClickListener listener) {
+    public static void singleChooseOption(Context context, int titleResource, 
+            String[] stringArray, int defaultOption, OnClickListener listener) {
         Builder builder = createBuilder(context);
         builder.setTitle(titleResource);
         builder.setSingleChoiceItems(stringArray, defaultOption, listener);
-        builder.setNegativeButton(StringUtil.getStringResource("cancel", context), new OnClickListener() {
+        builder.setNegativeButton(StringUtil.getStringResource("cancel", context), 
+                new OnClickListener() {
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -197,13 +205,15 @@ public class DialogBuilder {
         }
     }
 
-    public static void multiChooseOption(final Context context, int titleResource, int optionsResource, final boolean[] defaultOption, final ISuccess<boolean[]> success) {
+    public static void multiChooseOption(final Context context, int titleResource, 
+            int optionsResource, final boolean[] defaultOption, final ISuccess success) {
         String[] stringArray = context.getResources().getStringArray(optionsResource);
         multiChooseOption(context, titleResource, stringArray, defaultOption, success);
 		
 	}
 
-    public static void multiChooseOption(Context context, int titleResource, String[] stringArray, final boolean[] defaultOption, final ISuccess<boolean[]> success) {
+    public static void multiChooseOption(Context context, int titleResource, 
+            String[] stringArray, final boolean[] defaultOption, final ISuccess success) {
         Builder builder = createBuilder(context);
         builder.setTitle(titleResource);
         builder.setMultiChoiceItems(stringArray, defaultOption, new OnMultiChoiceClickListener() {
@@ -240,7 +250,8 @@ public class DialogBuilder {
     }
 
 
-    public static void input(final Activity activity, String title, String hint, String defaultValue, String positiveButton, boolean isNumber, final ISuccess<String> success) {
+    public static void input(final Activity activity, String title, String hint, 
+            String defaultValue, String positiveButton, boolean isNumber, final ISuccess success) {
 		final EditText input = new EditText(activity);
 		if (!StringUtil.isEmpty(defaultValue)) {
 			input.setText(defaultValue);
@@ -248,7 +259,8 @@ public class DialogBuilder {
 		if (isNumber) {
 			input.setInputType(InputType.TYPE_NUMBER_FLAG_DECIMAL);
 		}
-		MarginLayoutParams marginLayoutParams = new MarginLayoutParams(MarginLayoutParams.MATCH_PARENT, MarginLayoutParams.WRAP_CONTENT);
+		MarginLayoutParams marginLayoutParams = new MarginLayoutParams(
+		        MarginLayoutParams.MATCH_PARENT, MarginLayoutParams.WRAP_CONTENT);
 		marginLayoutParams.leftMargin = UiUtil.getDp(activity, 8);
 		marginLayoutParams.rightMargin = UiUtil.getDp(activity, 8);
 		input.setLayoutParams(marginLayoutParams);

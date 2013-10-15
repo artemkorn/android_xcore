@@ -17,14 +17,14 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 import by.istin.android.xcore.annotations.JsonSubJSONObject;
-import by.istin.android.xcore.annotations.dbBoolean;
-import by.istin.android.xcore.annotations.dbByte;
-import by.istin.android.xcore.annotations.dbDouble;
-import by.istin.android.xcore.annotations.dbEntities;
-import by.istin.android.xcore.annotations.dbEntity;
-import by.istin.android.xcore.annotations.dbInteger;
-import by.istin.android.xcore.annotations.dbLong;
-import by.istin.android.xcore.annotations.dbString;
+import by.istin.android.xcore.annotations.DbBoolean;
+import by.istin.android.xcore.annotations.DbByte;
+import by.istin.android.xcore.annotations.DbDouble;
+import by.istin.android.xcore.annotations.DbEntities;
+import by.istin.android.xcore.annotations.DbEntity;
+import by.istin.android.xcore.annotations.DbInteger;
+import by.istin.android.xcore.annotations.DbLong;
+import by.istin.android.xcore.annotations.DbString;
 import by.istin.android.xcore.utils.BytesUtils;
 import by.istin.android.xcore.utils.ReflectUtils;
 
@@ -119,31 +119,31 @@ public class ContentValuesAdapter implements JsonDeserializer<ContentValues> {
 				continue;
 			}
 			if (jsonValue.isJsonPrimitive()) {
-                if (ReflectUtils.isAnnotationPresent(field, dbLong.class)) {
+                if (ReflectUtils.isAnnotationPresent(field, DbLong.class)) {
                     contentValues.put(fieldValue, jsonValue.getAsLong());
-                } else if (ReflectUtils.isAnnotationPresent(field, dbString.class)) {
+                } else if (ReflectUtils.isAnnotationPresent(field, DbString.class)) {
                     contentValues.put(fieldValue, jsonValue.getAsString());
-                } else if (ReflectUtils.isAnnotationPresent(field, dbBoolean.class)) {
+                } else if (ReflectUtils.isAnnotationPresent(field, DbBoolean.class)) {
                     contentValues.put(fieldValue, jsonValue.getAsBoolean());
-                } else if (ReflectUtils.isAnnotationPresent(field, dbByte.class)) {
+                } else if (ReflectUtils.isAnnotationPresent(field, DbByte.class)) {
                     contentValues.put(fieldValue, jsonValue.getAsByte());
-                } else if (ReflectUtils.isAnnotationPresent(field, dbDouble.class)) {
+                } else if (ReflectUtils.isAnnotationPresent(field, DbDouble.class)) {
                     contentValues.put(fieldValue, jsonValue.getAsDouble());
-                } else if (ReflectUtils.isAnnotationPresent(field, dbInteger.class)) {
+                } else if (ReflectUtils.isAnnotationPresent(field, DbInteger.class)) {
                     contentValues.put(fieldValue, jsonValue.getAsInt());
                 }
-            } else if (ReflectUtils.isAnnotationPresent(field, dbEntity.class)) {
-				dbEntity entity = field.getAnnotation(dbEntity.class);
+            } else if (ReflectUtils.isAnnotationPresent(field, DbEntity.class)) {
+				DbEntity entity = field.getAnnotation(DbEntity.class);
 				Class<?> clazz = entity.clazz();
 				ContentValuesAdapter contentValuesAdapter = new ContentValuesAdapter(clazz);
 				ContentValues values = contentValuesAdapter.deserialize(jsonValue.getAsJsonObject(), type, jsonDeserializationContext);
 				contentValuesAdapter = null;
 				contentValues.put(fieldValue, BytesUtils.toByteArray(values));
-				dbEntity annotation = field.getAnnotation(dbEntity.class);
+				DbEntity annotation = field.getAnnotation(DbEntity.class);
 				contentValues.put(annotation.contentValuesKey(), annotation.clazz().getCanonicalName());
-			} else if (field.isAnnotationPresent(dbEntities.class)) {
+			} else if (field.isAnnotationPresent(DbEntities.class)) {
 				JsonArray jsonArray = jsonValue.getAsJsonArray();
-				dbEntities entity = field.getAnnotation(dbEntities.class);
+				DbEntities entity = field.getAnnotation(DbEntities.class);
 				Class<?> clazz = entity.clazz();
 				ContentValuesAdapter contentValuesAdaper = new ContentValuesAdapter(clazz);
 				ContentValues[] values = new ContentValues[jsonArray.size()];
@@ -157,7 +157,7 @@ public class ContentValuesAdapter implements JsonDeserializer<ContentValues> {
 				}
 				contentValuesAdaper = null;
 				contentValues.put(fieldValue, BytesUtils.arrayToByteArray(values));
-				dbEntities annotation = field.getAnnotation(dbEntities.class);
+				DbEntities annotation = field.getAnnotation(DbEntities.class);
 				contentValues.put(annotation.contentValuesKey(), annotation.clazz().getCanonicalName());
 			}
 		}

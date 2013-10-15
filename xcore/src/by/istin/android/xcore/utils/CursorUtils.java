@@ -6,6 +6,9 @@ import android.database.DatabaseUtils;
 
 import java.util.List;
 
+/**
+ * Utility class with static methods fro accessing Cursor data columns.
+ */
 public final class CursorUtils {
 
 	public static String getString(String columnName, Cursor cursor) {
@@ -20,6 +23,14 @@ public final class CursorUtils {
 		int columnIndex = cursor.getColumnIndex(columnName);
 		return cursor.getInt(columnIndex);
 	}
+
+    public static boolean getBoolean(String columnName, Cursor cursor) {
+        int columnIndex = cursor.getColumnIndex(columnName);
+        if (columnIndex == -1) {
+            return false;
+        }
+        return cursor.getInt(columnIndex) == 1;
+    }
 	
 	public static byte getByte(String columnName, Cursor cursor) {
 		return getInt(columnName, cursor).byteValue();
@@ -81,25 +92,20 @@ public final class CursorUtils {
 
     public static int getSize(Cursor cursor) {
         if (cursor == null || cursor.isClosed()) {
+            // TODO Is this OK to return 0 in such a case?
             return 0;
         }
         return cursor.getCount();
     }
 
-    public static boolean getBoolean(String columnName, Cursor cursor) {
-        int columnIndex = cursor.getColumnIndex(columnName);
-        if (columnIndex == -1) {
-            return false;
-        }
-        return cursor.getInt(columnIndex) == 1;
-    }
-
-    public static abstract class Converter {
+    // Cursor to ContentValues conversion
+    
+    public static abstract class CursorConverter {
 
         public abstract void convert(Cursor cursor, ContentValues contentValues);
 
-        public static Converter get() {
-            return new Converter() {
+        public static CursorConverter get() {
+            return new CursorConverter() {
                 @Override
                 public void convert(Cursor cursor, ContentValues contentValues) {
                     DatabaseUtils.cursorRowToContentValues(cursor, contentValues);
@@ -109,15 +115,15 @@ public final class CursorUtils {
     }
 
     public static void convertToContentValuesAndClose(Cursor cursor, List<ContentValues> list) {
-        convertToContentValuesAndClose(cursor, list, Converter.get());
+        convertToContentValuesAndClose(cursor, list, CursorConverter.get());
     }
 
-    public static void convertToContentValuesAndClose(Cursor cursor, List<ContentValues> list, Converter converter) {
+    public static void convertToContentValuesAndClose(Cursor cursor, List<ContentValues> list, CursorConverter converter) {
         convertToContentValues(cursor, list, converter);
         close(cursor);
     }
 
-    public static void convertToContentValues(Cursor cursor, List<ContentValues> list, Converter converter) {
+    public static void convertToContentValues(Cursor cursor, List<ContentValues> list, CursorConverter converter) {
         if (isEmpty(cursor)) {
             return;
         }

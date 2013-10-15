@@ -28,6 +28,9 @@ import by.istin.android.xcore.utils.Log;
  */
 public class SyncDataSourceService extends DataSourceService {
 
+    /**
+     * A synchronization object to synchronize the DB access from different threads
+     */
     private static Object sDbLockFlag = new Object();
 
     private static ExecutorService sSingleExecutor = Executors.newSingleThreadExecutor();
@@ -90,8 +93,6 @@ public class SyncDataSourceService extends DataSourceService {
 
     @Override
     protected void run(RequestExecutor.ExecuteRunnable runnable, final Intent intent, final DataSourceRequest dataSourceRequest, final Bundle bundle, final ResultReceiver resultReceiver) {
-        final String processorKey = intent.getStringExtra(PROCESSOR_KEY);
-        final String datasourceKey = intent.getStringExtra(DATA_SOURCE_KEY);
         synchronized (sDbLockFlag) {
             super.run(runnable, intent, dataSourceRequest, bundle, resultReceiver);
         }
