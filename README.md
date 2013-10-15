@@ -10,7 +10,6 @@ The main objective of the Android XCore framework is to simplify a development o
 XListFragment – it is a list fragment, which consumes a generic cursor adapter to display model data. Here you override following methods:
 getUrl() – it specifies what URL to use to fetch the JSON (currently only) data from
 getUri() – should return a properly formed URI of the model entity. Create it using ModelContract.getUri() method.
-Выяснить на счёт вызова loadData метода в onPageLoad коллбеке.
 getAdapterLayout() should return an id of the layout resource for a view item of the containing adapter view (ListView in case of XListFragment)
 getViewLayout() should return ad id of the layout resource for the fragment content view.
 
