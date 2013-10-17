@@ -19,9 +19,13 @@ public class XCoreHelper {
         return (XCoreHelper) AppUtils.get(context, SYSTEM_SERVICE_KEY);
     }
 
+    // System service components management
+    
     /**
      * Some general component, which should have only one instance in the application
      * and may be assembled dynamically, using this key string.
+     * In other words, it is for storing some component in the application's
+     * service registry.
      */
 	public static interface IAppServiceKey {
 		
@@ -30,7 +34,24 @@ public class XCoreHelper {
 	}
 
 	private Map<String, IAppServiceKey> mAppService = new HashMap<String, IAppServiceKey>();
+	
+    
+    public void registerAppService(IAppServiceKey appService) {
+        mAppService.put(appService.getAppServiceKey(), appService);
+    }
+    
+    public Object getSystemService(String name) {
+        if (name.equals(SYSTEM_SERVICE_KEY)) {
+            return this;
+        }
+        if (mAppService.containsKey(name)) {
+            return mAppService.get(name);
+        }
+        return null;
+    }
 
+	// Plugins management
+	
     private List<IXListFragmentPlugin> mListFragmentPlugins;
 
     public List<IXListFragmentPlugin> getListFragmentPlugins() {
@@ -48,19 +69,5 @@ public class XCoreHelper {
 		ContextHolder.getInstance().setContext(ctx);
         Log.init(ctx);
         registerAppService(new Core(ctx));
-	}
-	
-	public void registerAppService(IAppServiceKey appService) {
-		mAppService.put(appService.getAppServiceKey(), appService);
-	}
-	
-	public Object getSystemService(String name) {
-        if (name.equals(SYSTEM_SERVICE_KEY)) {
-            return this;
-        }
-		if (mAppService.containsKey(name)) {
-			return mAppService.get(name);
-		}
-		return null;
 	}
 }

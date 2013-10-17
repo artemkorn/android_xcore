@@ -9,6 +9,9 @@ import android.os.Bundle;
 import by.istin.android.xcore.ContextHolder;
 import by.istin.android.xcore.utils.BytesUtils;
 
+/**
+ * Serves as a helper class to manage app's shared preferences
+ */
 public class PreferenceHelper {
 
     private static final String SETTINGS = "settings";

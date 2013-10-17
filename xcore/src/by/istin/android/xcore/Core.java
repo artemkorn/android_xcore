@@ -21,6 +21,8 @@ import by.istin.android.xcore.utils.AppUtils;
 import by.istin.android.xcore.utils.CursorUtils;
 
 /**
+ * Manages base framework operations.
+ * 
  * Created by IstiN on 14.8.13.
  */
 public class Core implements XCoreHelper.IAppServiceKey {
@@ -208,6 +210,10 @@ public class Core implements XCoreHelper.IAppServiceKey {
         return (Core) AppUtils.get(context, APP_SERVICE_KEY);
     }
 
+    /**
+     * Executes provided operation instance in the {@link by.istin.android.xcore.service.DataSourceService} 
+     * @param executeOperation
+     */
     public void execute(final IExecuteOperation<?> executeOperation) {
         String processorKey = executeOperation.getProcessorKey();
         final DataSourceRequest dataSourceRequest = executeOperation.getDataSourceRequest();
@@ -228,7 +234,7 @@ public class Core implements XCoreHelper.IAppServiceKey {
                     if (dataSourceListener != null) {
                         dataSourceListener.onDone(resultData);
                     }
-                    sendResult(resultData, resultData, executeOperation);
+                    sendResult(resultData, resultData, (IExecuteOperation<Bundle>)executeOperation);
                     return;
                 }
                 mExecutor.execute(new Runnable() {
@@ -238,7 +244,7 @@ public class Core implements XCoreHelper.IAppServiceKey {
                         if (cursor != null) {
                             cursor.getCount();
                         }
-                        if (!sendResult(resultData, cursor, executeOperation)) {
+                        if (!sendResult(resultData, cursor, (IExecuteOperation<Cursor>)executeOperation)) {
                             CursorUtils.close(cursor);
                         }
                     }
@@ -264,15 +270,16 @@ public class Core implements XCoreHelper.IAppServiceKey {
         });
     }
 
-    private boolean sendResult(final Bundle resultData, final Object result, final IExecuteOperation<?> executeOperation) {
-        final ISuccess success = executeOperation.getSuccess();
+    private <T> boolean sendResult(final Bundle resultData, final T result, final IExecuteOperation<T> executeOperation) {
+        final ISuccess<T> success = executeOperation.getSuccess();
         if (success != null) {
             mHandler.post(new Runnable() {
+                @SuppressWarnings("unchecked")
                 @Override
                 public void run() {
                     CursorModel.CursorModelCreator cursorModelCreator = executeOperation.getCursorModelCreator();
                     if (cursorModelCreator != null && result instanceof Cursor) {
-                        success.success(cursorModelCreator.create((Cursor)result));
+                        success.success((T) cursorModelCreator.create((Cursor)result));
                     } else {
                         success.success(result);
                     }
