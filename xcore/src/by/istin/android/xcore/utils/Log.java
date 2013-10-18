@@ -368,7 +368,7 @@ public class Log {
 
     /**
      * Marked the supplied action as completed (if it was added before)
-     * and logs its time length
+     * and logs its time duration
      * @param action Action instance to log. This method considers
      * proper <code>toString</code> method implementation.
      */
