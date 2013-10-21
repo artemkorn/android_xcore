@@ -53,6 +53,8 @@ public class HttpAndroidDataSource implements IDataSource<InputStream> {
 
 	public static final String SYSTEM_SERVICE_KEY = "xcore:httpdatasource";
 
+	// TODO Move headers to the separate Util class
+	
 	private static final String ACCEPT_DEFAULT_VALUE = "*/*";
 
 	private static final String USER_AGENT_KEY = "User-Agent";
@@ -180,14 +182,16 @@ public class HttpAndroidDataSource implements IDataSource<InputStream> {
 	public static class DefaultResponseStatusHandler implements IResponseStatusHandler {
 
 		@Override
-		public void statusHandle(HttpAndroidDataSource dataSource, HttpUriRequest request, HttpResponse response) throws IOStatusException, ParseException,
+		public void statusHandle(HttpAndroidDataSource dataSource, HttpUriRequest request, 
+		        HttpResponse response) throws IOStatusException, ParseException,
 				IOException {
 			int statusCode = response.getStatusLine().getStatusCode();
 			HttpEntity httpEntity = response.getEntity();
 			if (statusCode != HttpStatus.SC_OK) {
 				String entityValue = EntityUtils.toString(httpEntity);
 				Log.e(TAG, response.getStatusLine().getReasonPhrase() + " " + entityValue);
-				throw new IOStatusException(response.getStatusLine().getReasonPhrase(), statusCode, entityValue);
+				throw new IOStatusException(response.getStatusLine().getReasonPhrase(), 
+				        statusCode, entityValue);
 			}
 		}
 

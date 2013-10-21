@@ -246,7 +246,7 @@ public class DBHelper extends SQLiteOpenHelper {
 	}
 	
 	public int delete(SQLiteDatabase db, String tableName, String where, String[] whereArgs) {
-		if (isExists(tableName)) {
+		if (isTableExist(tableName)) {
 			if (db == null) {
 				db = getWritableDatabase();
 			}
@@ -256,9 +256,11 @@ public class DBHelper extends SQLiteOpenHelper {
 		}
 	}
 
-	public boolean isExists(String tableName) {
+	private boolean isTableExist(String tableName) {
 		SQLiteDatabase readableDb = getReadableDatabase();
-		Cursor cursor = readableDb.query("sqlite_master", new String[]{"name"}, "type=? AND name=?", new String[]{"table", tableName}, null, null, null);
+		Cursor cursor = readableDb.query("sqlite_master", 
+		        new String[]{"name"}, "type=? AND name=?", 
+		        new String[]{"table", tableName}, null, null, null);
 		try {
 			return cursor != null && cursor.moveToFirst();	
 		} finally {
@@ -272,7 +274,8 @@ public class DBHelper extends SQLiteOpenHelper {
 		return updateOrInsert(null, classOfModel, contentValues);
 	}
 	
-	public int updateOrInsert(DataSourceRequest dataSourceRequest, Class<?> classOfModel, ContentValues... contentValues) {
+	public int updateOrInsert(DataSourceRequest dataSourceRequest, 
+	        Class<?> classOfModel, ContentValues... contentValues) {
         if (contentValues == null) {
             return 0;
         }
@@ -293,8 +296,10 @@ public class DBHelper extends SQLiteOpenHelper {
 		}
 	}
 
-    private int updateOrInsert(DataSourceRequest dataSourceRequest, Class<?> classOfModel, SQLiteDatabase db, ContentValues[] contentValues) {
-        IBeforeArrayUpdate beforeListUpdate = ReflectUtils.getInstanceInterface(classOfModel, IBeforeArrayUpdate.class);
+    private int updateOrInsert(DataSourceRequest dataSourceRequest, 
+            Class<?> classOfModel, SQLiteDatabase db, ContentValues[] contentValues) {
+        IBeforeArrayUpdate beforeListUpdate = 
+                ReflectUtils.getInstanceInterface(classOfModel, IBeforeArrayUpdate.class);
         int count = 0;
         for (int i = 0; i < contentValues.length; i++) {
             ContentValues contentValue = contentValues[i];
@@ -470,7 +475,7 @@ public class DBHelper extends SQLiteOpenHelper {
 	public Cursor query(String tableName, String[] projection,
 			String selection, String[] selectionArgs, String groupBy,
 			String having, String sortOrder, String limit) {
-		if (isExists(tableName)) {
+		if (isTableExist(tableName)) {
 			SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 			qb.setTables(tableName);
 			SQLiteDatabase db = getReadableDatabase();

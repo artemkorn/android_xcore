@@ -264,7 +264,7 @@ public class Log {
         }
     }
     
-    public static void w(Object message, Throwable e) {
+    public static void wt(Object message, Throwable e) {
         Level l = Level.WARN;
         if (shouldLog(l)) {
             sLoggerAdapter.convertLog(l, getLogTag(), message, e);
@@ -307,7 +307,7 @@ public class Log {
         }
     }
     
-    public static void e(Object message, Throwable e) {
+    public static void et(Object message, Throwable e) {
         Level l = Level.ERROR;
         if (shouldLog(l)) {
             sLoggerAdapter.convertLog(l, getLogTag(), message, e);
@@ -346,6 +346,7 @@ public class Log {
      */
     private static String getLogTag() {
         String tag = null;
+        // Use 4 here to get the Caller's class method exactly, not the Log internal calls
         String className = Thread.currentThread().getStackTrace()[4].getClassName();
         tag = className.substring(className.lastIndexOf(PERIOD) + 1);
         return tag; 

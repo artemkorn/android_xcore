@@ -154,11 +154,14 @@ public class DialogBuilder {
 		
 	}
 	
-	public static void options(final Context context, int titleResource, String[] optionsResource, final OnClickListener listener) {
+	public static void options(final Context context, int titleResource, 
+	        String[] optionsResource, 
+	        final OnClickListener listener) {
 		Builder builder = createBuilder(context);
 		builder.setTitle(titleResource);
 		builder.setItems(optionsResource, listener);
-		builder.setNegativeButton(StringUtil.getStringResource("cancel", context), new OnClickListener() {
+		builder.setNegativeButton(StringUtil.getStringResource("cancel", context), 
+		        new OnClickListener() {
 			
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
